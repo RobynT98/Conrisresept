@@ -25,7 +25,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          # ⚠️ Ta bort cache: npm när du inte har lockfil
+          # cache: 'npm'
 
       - name: Install
         run: npm install
