@@ -35,3 +35,10 @@ export interface Note {
   createdAt: number;
   updatedAt: number;
 }
+export type ShoppingItem = {
+  id: string;
+  text: string;
+  done: boolean;
+  createdAt: number;
+  updatedAt: number;
+};
