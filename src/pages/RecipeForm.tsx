@@ -49,12 +49,14 @@ export default function RecipeForm() {
 
   return (
     <section className="space-y-4">
-      <h1 className="font-display text-2xl">{id ? "Redigera recept" : "Nytt recept"}</h1>
+      <h1 className="font-display text-3xl">
+        {id ? "Redigera recept" : "Nytt recept"}
+      </h1>
 
       {/* Grundinfo */}
-      <div className="grid gap-3 rounded-xl border bg-white p-4">
+      <div className="grid gap-3 panel p-4">
         <input
-          className="rounded-lg border px-3 py-2"
+          className="field"
           placeholder="Titel"
           value={recipe.title}
           onChange={(e) => update("title", e.target.value)}
@@ -62,7 +64,7 @@ export default function RecipeForm() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <select
-            className="rounded-lg border px-3 py-2"
+            className="field"
             value={recipe.chapter}
             onChange={(e) => update("chapter", e.target.value)}
           >
@@ -75,7 +77,7 @@ export default function RecipeForm() {
           </select>
 
           <input
-            className="rounded-lg border px-3 py-2"
+            className="field"
             type="number"
             min={1}
             value={recipe.servings}
@@ -84,7 +86,7 @@ export default function RecipeForm() {
           />
 
           <select
-            className="rounded-lg border px-3 py-2"
+            className="field"
             value={recipe.difficulty}
             onChange={(e) => update("difficulty", e.target.value as any)}
           >
@@ -118,19 +120,19 @@ export default function RecipeForm() {
 
         <label className="block">
           <span className="text-sm">Bild</span>
-          <input type="file" accept="image/*" onChange={onImage} className="block mt-1" />
+          <input type="file" accept="image/*" onChange={onImage} className="mt-1" />
         </label>
 
         <Themes value={recipe.themes} onChange={(t) => update("themes", t)} />
       </div>
 
       {/* Ingredienser */}
-      <div className="grid gap-3 rounded-xl border bg-white p-4">
-        <h2 className="font-display text-xl">Ingredienser</h2>
+      <div className="grid gap-3 panel p-4">
+        <h2 className="section-title">Ingredienser</h2>
         {recipe.ingredients.map((ing, i) => (
           <div key={i} className="grid grid-cols-4 gap-2">
             <input
-              className="border rounded px-2 py-2"
+              className="field"
               type="number"
               placeholder="Mängd"
               value={ing.qty ?? ""}
@@ -142,45 +144,45 @@ export default function RecipeForm() {
               }
             />
             <input
-              className="border rounded px-2 py-2"
+              className="field"
               placeholder="Enhet"
               value={ing.unit}
               onChange={(e) => changeIng(i, { ...ing, unit: e.target.value })}
             />
             <input
-              className="border rounded px-2 py-2"
+              className="field"
               placeholder="Ingrediens"
               value={ing.item}
               onChange={(e) => changeIng(i, { ...ing, item: e.target.value })}
             />
             <input
-              className="border rounded px-2 py-2"
+              className="field"
               placeholder="Anteckning"
               value={ing.note || ""}
               onChange={(e) => changeIng(i, { ...ing, note: e.target.value })}
             />
           </div>
         ))}
-        <button className="px-3 py-2 rounded bg-butter" onClick={() => addIng()}>
+        <button className="btn bg-butter hover:bg-butter/90" onClick={() => addIng()}>
           + Lägg till ingrediens
         </button>
       </div>
 
       {/* Tillagning */}
-      <div className="grid gap-3 rounded-xl border bg-white p-4">
-        <h2 className="font-display text-xl">Tillagning</h2>
+      <div className="grid gap-3 panel p-4">
+        <h2 className="section-title">Tillagning</h2>
         {recipe.steps.map((st, i) => (
           <div key={i} className="grid grid-cols-6 gap-2 items-center">
             <div className="col-span-5">
               <input
-                className="border rounded px-2 py-2 w-full"
+                className="field w-full"
                 placeholder={`Steg ${i + 1}`}
                 value={st.text}
                 onChange={(e) => changeStep(i, { ...st, text: e.target.value })}
               />
             </div>
             <input
-              className="border rounded px-2 py-2"
+              className="field"
               type="number"
               min={0}
               placeholder="Timer (s)"
@@ -189,14 +191,14 @@ export default function RecipeForm() {
             />
           </div>
         ))}
-        <button className="px-3 py-2 rounded bg-butter" onClick={() => addStep()}>
+        <button className="btn bg-butter hover:bg-butter/90" onClick={() => addStep()}>
           + Lägg till steg
         </button>
       </div>
 
       {/* Spara */}
       <div className="flex gap-3">
-        <button className="px-4 py-2 rounded-lg bg-forest text-white" onClick={save}>
+        <button className="btn-primary" onClick={save}>
           Spara
         </button>
       </div>
@@ -246,7 +248,7 @@ function NumberBox({
       <span className="text-sm">{label}</span>
       <input
         type="number"
-        className="w-full rounded-lg border px-3 py-2"
+        className="field w-full"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
       />
@@ -260,7 +262,7 @@ async function fileToDataUrl(file: File) {
   return `data:${file.type};base64,${b64}`;
 }
 
-/* ---------- Saknad komponent: TEMAN ---------- */
+/* ---------- Teman ---------- */
 function Themes({
   value,
   onChange
@@ -270,15 +272,11 @@ function Themes({
 }) {
   const [newTheme, setNewTheme] = useState("");
 
-  // Slå ihop standardteman med valda, utan dubletter
   const all = Array.from(new Set([...defaultThemes, ...value])).sort();
 
   function toggle(t: string) {
-    if (value.includes(t)) {
-      onChange(value.filter((x) => x !== t));
-    } else {
-      onChange([...value, t]);
-    }
+    if (value.includes(t)) onChange(value.filter((x) => x !== t));
+    else onChange([...value, t]);
   }
 
   function addCustom() {
@@ -311,17 +309,13 @@ function Themes({
 
       <div className="flex gap-2">
         <input
-          className="flex-1 rounded-lg border px-3 py-2"
+          className="field flex-1"
           placeholder="Lägg till eget tema…"
           value={newTheme}
           onChange={(e) => setNewTheme(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addCustom()}
         />
-        <button
-          type="button"
-          onClick={addCustom}
-          className="px-3 py-2 rounded-lg border bg-butter"
-        >
+        <button type="button" onClick={addCustom} className="btn bg-butter hover:bg-butter/90">
           Lägg till
         </button>
       </div>
