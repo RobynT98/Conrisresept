@@ -17,6 +17,7 @@ const router = createHashRouter([
       { path: "search", element: <Search /> },
       { path: "recipe/new", element: <RecipeForm /> },
       { path: "recipe/:id", element: <RecipeView /> },
+      { path: "recipe/:id/edit", element: <RecipeForm /> }, // ← redigeringsläge
       { path: "shopping", element: <Shopping /> },
       { path: "notes", element: <Notes /> },
       { path: "settings", element: <Settings /> }
