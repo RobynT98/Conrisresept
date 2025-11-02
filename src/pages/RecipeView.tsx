@@ -15,19 +15,19 @@ export default function RecipeView() {
   if (!r) return <p className="p-4 text-neutral-600">Laddar…</p>;
 
   return (
-    <article className="space-y-6">
+    <article className="space-y-6 border border-amber-100 bg-white/60 rounded-2xl p-4 sm:p-6 shadow-sm">
       {/* Titel + actions */}
       <div className="flex items-center justify-between">
         <h1 className="font-display text-3xl">{r.title}</h1>
         <div className="flex gap-2">
           <button
-            className="px-3 py-2 rounded-lg border border-neutral-300 bg-white hover:bg-butter"
+            className="px-3 py-1.5 rounded-xl border border-forest/40 text-forest/80 bg-white/70 hover:bg-forest/5 transition"
             onClick={() => nav(`/recipe/${r.id}/edit`)}
           >
             Redigera
           </button>
           <button
-            className="px-3 py-2 rounded-lg border border-red-300 bg-white text-red-700 hover:bg-red-50"
+            className="px-3 py-1.5 rounded-xl border border-red-300 text-red-700 bg-white/70 hover:bg-red-50 transition"
             onClick={async () => {
               if (!confirm("Ta bort receptet? Det går inte att ångra.")) return;
               await deleteRecipe(r.id);
@@ -44,7 +44,7 @@ export default function RecipeView() {
         <img
           src={r.image}
           alt=""
-          className="w-full max-h-[400px] object-cover rounded-xl border"
+          className="w-full max-h-[400px] object-cover rounded-2xl border"
         />
       )}
 
@@ -96,7 +96,7 @@ export default function RecipeView() {
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border bg-white p-3">
+    <div className="rounded-2xl border border-amber-100 bg-white/70 p-3 shadow-sm">
       <div className="text-sm text-forest/80">{label}</div>
       <div className="font-medium">{value}</div>
     </div>
