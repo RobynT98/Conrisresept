@@ -1,6 +1,5 @@
-import { openDB, DBSchema } from "idb";
-import type { Recipe } from "./types";
-import type { Note } from "./types";
+import { openDB, type DBSchema } from "idb";
+import type { Recipe, Note, ShoppingItem } from "./types";
 
 interface CRSchema extends DBSchema {
   recipes: {
@@ -17,7 +16,7 @@ interface CRSchema extends DBSchema {
 }
 
 const DB_NAME = "conrisresept";
-/** v2 = lägger till "notes" store */
+/** v2 = lade till "notes" store. Shopping ligger i meta och kräver ingen ny version. */
 export const DB_VERSION = 2;
 
 export async function db() {
@@ -53,7 +52,7 @@ export async function getRecipe(id: string) {
 
 export async function getAllRecipes() {
   const d = await db();
-  // IDB-index är stigande – sortera så nyast kommer först
+  // Indexen är stigande – sortera så nyast kommer först
   const list = await d.getAllFromIndex("recipes", "by-updatedAt");
   return list.sort((a, b) => b.updatedAt - a.updatedAt);
 }
@@ -81,12 +80,25 @@ export async function deleteNote(id: string) {
 
 export async function getAllNotes() {
   const d = await db();
-  // Hämta alla via updatedAt-index och sortera: pinned först, sedan updatedAt DESC
+  // Via updatedAt-index och sortera: pinned först, sedan updatedAt DESC
   const list = await d.getAllFromIndex("notes", "by-updatedAt");
   return list.sort((a, b) => {
-    if (a.pinned !== b.pinned) return b.pinned ? 1 : -1; // true först
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1; // true först
     return b.updatedAt - a.updatedAt;
   });
+}
+
+/* ---------- Shopping (lagras i meta) ---------- */
+const SHOPPING_KEY = "shopping";
+
+export async function getShopping(): Promise<ShoppingItem[]> {
+  const d = await db();
+  return (await d.get("meta", SHOPPING_KEY)) || [];
+}
+
+export async function saveShopping(items: ShoppingItem[]) {
+  const d = await db();
+  await d.put("meta", items, SHOPPING_KEY);
 }
 
 /* ---------- Export / Import ---------- */
@@ -94,8 +106,9 @@ export async function exportAll() {
   const d = await db();
   const recipes = await d.getAll("recipes");
   const notes = await d.getAll("notes");
-  const meta = (await d.get("meta", "settings")) || {};
-  return { version: DB_VERSION, recipes, notes, settings: meta };
+  const shopping: ShoppingItem[] = (await d.get("meta", SHOPPING_KEY)) || [];
+  const settings = (await d.get("meta", "settings")) || {};
+  return { version: DB_VERSION, recipes, notes, shopping, settings };
 }
 
 export async function importAll(payload: any) {
@@ -113,6 +126,11 @@ export async function importAll(payload: any) {
     const txN = d.transaction("notes", "readwrite");
     for (const n of payload.notes) await txN.store.put(n);
     await txN.done;
+  }
+
+  // Inköpslista
+  if (payload.shopping) {
+    await d.put("meta", payload.shopping, SHOPPING_KEY);
   }
 
   // Settings
