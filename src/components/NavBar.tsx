@@ -12,6 +12,7 @@ export default function NavBar() {
         <nav className="hidden sm:flex gap-2">
           <NavLink to="/search" className="btn-ghost text-sm">Sök</NavLink>
           <NavLink to="/shopping" className="btn-ghost text-sm">Inköp</NavLink>
+          <NavLink to="/notes" className="btn-ghost text-sm">Anteckningar</NavLink>
           <NavLink to="/recipe/new" className="btn-primary text-sm">Nytt recept</NavLink>
           <NavLink to="/settings" className="btn-ghost text-sm">Mer</NavLink>
         </nav>
