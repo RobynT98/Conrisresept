@@ -19,19 +19,20 @@ export default function Notes() {
     setNotes(list);
   }
 
+  function autosize(el: HTMLTextAreaElement | null) {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 220) + "px";
+  }
+
   async function onSave() {
     const t = text.trim();
     if (!t) return;
 
     if (editingId) {
-      const existing = notes.find(n => n.id === editingId);
+      const existing = notes.find((n) => n.id === editingId);
       if (!existing) return;
-      const updated: Note = {
-        ...existing,
-        text: t,
-        updatedAt: Date.now(),
-      };
-      await putNote(updated);
+      await putNote({ ...existing, text: t, updatedAt: Date.now() });
       setEditingId(null);
     } else {
       const newNote: Note = {
@@ -45,12 +46,6 @@ export default function Notes() {
     }
     setText("");
     await refresh();
-    inputRef.current?.focus();
-  }
-
-  async function onEdit(n: Note) {
-    setEditingId(n.id);
-    setText(n.text);
     inputRef.current?.focus();
   }
 
@@ -69,6 +64,20 @@ export default function Notes() {
     await refresh();
   }
 
+  function onEdit(n: Note) {
+    setEditingId(n.id);
+    setText(n.text);
+    requestAnimationFrame(() => autosize(inputRef.current));
+    inputRef.current?.focus();
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "enter") {
+      e.preventDefault();
+      onSave();
+    }
+  }
+
   return (
     <section className="space-y-4">
       <h1 className="font-display text-3xl">Anteckningar</h1>
@@ -78,18 +87,22 @@ export default function Notes() {
         <textarea
           ref={inputRef}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            autosize(e.currentTarget);
+          }}
+          onKeyDown={onKeyDown}
           placeholder="Skriv en idé, ett tips eller ett minne…"
           rows={4}
           className="w-full rounded-lg border border-neutral-300 px-3 py-2"
         />
         <div className="flex items-center gap-2">
-          <button onClick={onSave} className="btn-primary">
+          <button onClick={onSave} className="px-4 py-1.5 rounded-lg bg-forest text-white">
             {editingId ? "Spara ändring" : "Spara anteckning"}
           </button>
           {editingId && (
             <button
-              className="btn-ghost"
+              className="px-4 py-1.5 rounded-lg border border-neutral-300 bg-white"
               onClick={() => {
                 setEditingId(null);
                 setText("");
@@ -98,55 +111,64 @@ export default function Notes() {
               Avbryt
             </button>
           )}
+          <span className="ml-auto text-xs text-neutral-500 hidden sm:inline">
+            Ctrl/⌘ + Enter för att spara
+          </span>
         </div>
       </div>
 
+      {/* Header info */}
+      <div className="text-sm text-neutral-600">
+        {notes.length === 0 ? "Inga anteckningar än." : `${notes.length} anteckning${notes.length > 1 ? "ar" : ""}`}
+      </div>
+
       {/* Lista */}
-      {notes.length === 0 ? (
-        <p className="text-neutral-600">Inga anteckningar än.</p>
-      ) : (
-        <ul className="space-y-3">
-          {notes.map((n) => (
-            <li
-              key={n.id}
-              className="rounded-2xl border border-amber-100 bg-white/70 p-3 sm:p-4"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="whitespace-pre-wrap">{n.text}</div>
-                <div className="flex flex-wrap gap-2 shrink-0">
-                  <button
-                    className={
-                      "px-3 py-1.5 rounded-lg border text-sm " +
-                      (n.pinned
-                        ? "border-forest/30 text-forest/80 bg-forest/5"
-                        : "border-neutral-300 text-neutral-700 bg-white")
-                    }
-                    onClick={() => onPinToggle(n)}
-                    title={n.pinned ? "Lossa" : "Fäst"}
-                  >
-                    {n.pinned ? "Fäst" : "Fäst?"}
-                  </button>
-                  <button
-                    className="px-3 py-1.5 rounded-lg border border-neutral-300 text-sm bg-white"
-                    onClick={() => onEdit(n)}
-                  >
-                    Redigera
-                  </button>
-                  <button
-                    className="px-3 py-1.5 rounded-lg border border-red-300 text-sm text-red-700 bg-white hover:bg-red-50"
-                    onClick={() => onDelete(n)}
-                  >
-                    Ta bort
-                  </button>
-                </div>
+      <ul className="space-y-3">
+        {notes.map((n) => (
+          <li
+            key={n.id}
+            className={
+              "rounded-2xl border p-3 sm:p-4 transition-colors " +
+              (n.pinned
+                ? "bg-butter/20 border-amber-200"
+                : "bg-white/70 border-amber-100")
+            }
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-1 whitespace-pre-wrap">{n.text}</div>
+              <div className="flex flex-wrap gap-2 shrink-0">
+                <button
+                  className={
+                    "px-3 py-1.5 rounded-lg border text-sm transition-colors " +
+                    (n.pinned
+                      ? "border-forest/30 text-forest/80 bg-forest/5"
+                      : "border-neutral-300 text-neutral-700 bg-white hover:bg-neutral-50")
+                  }
+                  onClick={() => onPinToggle(n)}
+                  title={n.pinned ? "Lossa" : "Fäst"}
+                >
+                  {n.pinned ? "Lossa" : "Fäst"}
+                </button>
+                <button
+                  className="px-3 py-1.5 rounded-lg border border-neutral-300 text-sm bg-white hover:bg-neutral-50"
+                  onClick={() => onEdit(n)}
+                >
+                  Redigera
+                </button>
+                <button
+                  className="px-3 py-1.5 rounded-lg border border-red-300 text-sm text-red-700 bg-white hover:bg-red-50"
+                  onClick={() => onDelete(n)}
+                >
+                  Ta bort
+                </button>
               </div>
-              <div className="mt-2 text-xs text-neutral-500">
-                {formatDate(n.updatedAt)}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+            </div>
+            <div className="mt-2 text-xs text-neutral-500 text-right">
+              {formatDate(n.updatedAt)}
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
