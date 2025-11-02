@@ -19,7 +19,7 @@ export default function RecipeView() {
       {/* Titel */}
       <h1 className="font-display text-3xl text-center">{r.title}</h1>
 
-      {/* Actions under titel */}
+      {/* Actions under titel – diskreta */}
       <div className="flex justify-center gap-3">
         <button
           className="px-4 py-1.5 rounded-lg border border-forest/20 text-forest/70 bg-transparent hover:bg-forest/5 transition-colors text-sm"
@@ -48,8 +48,8 @@ export default function RecipeView() {
         />
       )}
 
-      {/* Grundinfo */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Grundinfo – kompakt, i rad */}
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
         <Info label="Kapitel" value={r.chapter || "–"} />
         <Info label="Portioner" value={String(r.servings || "–")} />
         <Info label="Tid" value={`${r.time.total || 0} min`} />
@@ -94,11 +94,12 @@ export default function RecipeView() {
   );
 }
 
+/* Kompakt “etikett”-kort */
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-amber-100 bg-white/70 p-3 shadow-sm">
-      <div className="text-sm text-forest/80">{label}</div>
-      <div className="font-medium">{value}</div>
+    <div className="rounded-xl border border-amber-100 bg-white/70 px-3 py-2 min-w-[96px] text-center shadow-sm">
+      <div className="text-xs text-forest/80">{label}</div>
+      <div className="font-medium text-sm">{value}</div>
     </div>
   );
 }
