@@ -1,9 +1,11 @@
+// src/pages/Home.tsx
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAllRecipes, getAllNotes } from "../db";
 import type { Recipe, Note } from "../types";
 import RecipeCard from "../components/RecipeCard";
 import WidgetCard from "../components/WidgetCard";
+import { readShopping } from "../lib/shopping";
 
 export default function Home() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -14,15 +16,17 @@ export default function Home() {
     getAllRecipes().then(setRecipes);
     getAllNotes().then(setNotes);
 
-    // läs status för inköpslista om du redan sparar den i localStorage
-    // (byt gärna till idb när/om du bygger shopping-store)
-    try {
-      const raw = localStorage.getItem("cr-shopping");
-      if (raw) {
-        const items = JSON.parse(raw) as Array<{ done?: boolean }>;
-        setShoppingLeft(items.filter(i => !i.done).length);
-      }
-    } catch {}
+    // Läs nuvarande inköpslista (localStorage: shopping.v1)
+    const items = readShopping();
+    setShoppingLeft(items.filter(i => !i.done).length);
+
+    // Lyssna på förändringar från Shopping-sidan
+    const onShoppingChanged = () => {
+      const xs = readShopping();
+      setShoppingLeft(xs.filter(i => !i.done).length);
+    };
+    window.addEventListener("shopping:changed", onShoppingChanged);
+    return () => window.removeEventListener("shopping:changed", onShoppingChanged);
   }, []);
 
   const latestNote = useMemo(() => notes[0], [notes]);
@@ -39,9 +43,7 @@ export default function Home() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <WidgetCard title="Inköpslista" icon="🛒" to="/shopping" actionLabel="Öppna">
           {shoppingLeft > 0 ? (
-            <span>
-              {shoppingLeft} kvar att köpa
-            </span>
+            <span>{shoppingLeft} kvar att köpa</span>
           ) : (
             <span className="text-neutral-600">Inget kvar att köpa</span>
           )}
@@ -54,9 +56,7 @@ export default function Home() {
                 {new Date(latestNote.updatedAt).toISOString().slice(0, 10)}
                 {latestNote.pinned ? " • Fäst" : ""}
               </div>
-              <div className="line-clamp-2">
-                {latestNote.text}
-              </div>
+              <div className="line-clamp-2">{latestNote.text}</div>
             </div>
           ) : (
             <span className="text-neutral-600">Inga anteckningar än.</span>
@@ -67,7 +67,10 @@ export default function Home() {
       {/* Recept-lista */}
       <div className="flex items-center justify-between mt-2">
         <h2 className="font-display text-2xl">Kapitelhyllan</h2>
-        <Link to="/search" className="px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-sm">
+        <Link
+          to="/search"
+          className="px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-sm"
+        >
           Sök
         </Link>
       </div>
