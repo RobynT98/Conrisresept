@@ -12,31 +12,42 @@ export default function TabBar() {
       className="sm:hidden sticky bottom-0 w-full bg-paper/95 border-t border-neutral-200 backdrop-blur"
       aria-label="Nedre navigering"
     >
-      <div className="max-w-screen-md mx-auto grid grid-cols-5 text-xs">
+      <div className="max-w-screen-md mx-auto grid grid-cols-6 text-xs">
         <NavLink
           to="/"
           className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
         >
           Start
         </NavLink>
+
         <NavLink
           to="/search"
           className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
         >
           Sök
         </NavLink>
+
         <NavLink
           to="/shopping"
           className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
         >
           Inköp
         </NavLink>
+
+        <NavLink
+          to="/notes"
+          className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
+        >
+          Anteckn.
+        </NavLink>
+
         <NavLink
           to="/recipe/new"
           className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
         >
           Nytt
         </NavLink>
+
         <NavLink
           to="/settings"
           className={({ isActive }) => `${base} ${isActive ? active : inactive}`}
