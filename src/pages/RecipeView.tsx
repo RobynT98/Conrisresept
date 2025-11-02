@@ -16,27 +16,27 @@ export default function RecipeView() {
 
   return (
     <article className="space-y-6 border border-amber-100 bg-white/60 rounded-2xl p-4 sm:p-6 shadow-sm">
-      {/* Titel + actions */}
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl">{r.title}</h1>
-        <div className="flex gap-2">
-          <button
-            className="px-3 py-1.5 rounded-xl border border-forest/40 text-forest/80 bg-white/70 hover:bg-forest/5 transition"
-            onClick={() => nav(`/recipe/${r.id}/edit`)}
-          >
-            Redigera
-          </button>
-          <button
-            className="px-3 py-1.5 rounded-xl border border-red-300 text-red-700 bg-white/70 hover:bg-red-50 transition"
-            onClick={async () => {
-              if (!confirm("Ta bort receptet? Det går inte att ångra.")) return;
-              await deleteRecipe(r.id);
-              nav("/");
-            }}
-          >
-            Ta bort
-          </button>
-        </div>
+      {/* Titel */}
+      <h1 className="font-display text-3xl text-center">{r.title}</h1>
+
+      {/* Actions under titel */}
+      <div className="flex justify-center gap-3">
+        <button
+          className="px-4 py-1.5 rounded-lg border border-forest/20 text-forest/70 bg-transparent hover:bg-forest/5 transition-colors text-sm"
+          onClick={() => nav(`/recipe/${r.id}/edit`)}
+        >
+          Redigera
+        </button>
+        <button
+          className="px-4 py-1.5 rounded-lg border border-red-200 text-red-500 bg-transparent hover:bg-red-50 transition-colors text-sm"
+          onClick={async () => {
+            if (!confirm("Ta bort receptet? Det går inte att ångra.")) return;
+            await deleteRecipe(r.id);
+            nav("/");
+          }}
+        >
+          Ta bort
+        </button>
       </div>
 
       {/* Bild */}
