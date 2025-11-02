@@ -1,3 +1,4 @@
+// src/pages/RecipeForm.tsx
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import type { Ingredient, Recipe } from "../types";
@@ -12,7 +13,7 @@ const emptyRecipe = (): Recipe => ({
   servings: 4,
   time: { prep: 0, cook: 0, total: 0, unit: "min" },
   difficulty: "lätt",
-  image: "",
+  image: undefined, // ⬅️ tomt från start
   ingredients: [],
   steps: [],
   notes: "",
@@ -28,23 +29,34 @@ export default function RecipeForm() {
   const [recipe, setRecipe] = useState<Recipe>(emptyRecipe());
 
   useEffect(() => {
-    if (id) getRecipe(id).then((r) => r && setRecipe(r));
+    if (id) getRecipe(id).then(r => r && setRecipe(r));
   }, [id]);
 
   function update<K extends keyof Recipe>(key: K, val: Recipe[K]) {
-    setRecipe((prev) => ({ ...prev, [key]: val, updatedAt: Date.now() }));
+    setRecipe(prev => ({ ...prev, [key]: val, updatedAt: Date.now() }));
   }
 
   async function save() {
-    await putRecipe(recipe);
+    // (valfritt) trimma lite innan spar
+    const cleaned: Recipe = {
+      ...recipe,
+      title: recipe.title.trim(),
+      chapter: recipe.chapter.trim(),
+      themes: dedupe(recipe.themes.map(t => t.trim()).filter(Boolean)),
+    };
+    await putRecipe(cleaned);
     nav(`/recipe/${recipe.id}`);
   }
 
   async function onImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const b64 = await fileToDataUrl(file);
-    update("image", b64);
+    const dataUrl = await fileToDataURL(file); // ✅ robust
+    update("image", dataUrl);
+  }
+
+  function clearImage() {
+    update("image", undefined);
   }
 
   return (
@@ -69,10 +81,8 @@ export default function RecipeForm() {
             onChange={(e) => update("chapter", e.target.value)}
           >
             <option value="">Kapitel…</option>
-            {defaultChapters.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
+            {defaultChapters.map(c => (
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
 
@@ -81,7 +91,7 @@ export default function RecipeForm() {
             type="number"
             min={1}
             value={recipe.servings}
-            onChange={(e) => update("servings", Number(e.target.value))}
+            onChange={(e) => update("servings", Number(e.target.value || 0))}
             placeholder="Portioner"
           />
 
@@ -118,10 +128,40 @@ export default function RecipeForm() {
           />
         </div>
 
-        <label className="block">
+        {/* Bild */}
+        <div className="grid gap-2">
           <span className="text-sm">Bild</span>
-          <input type="file" accept="image/*" onChange={onImage} className="mt-1" />
-        </label>
+
+          {recipe.image ? (
+            <div className="grid gap-2">
+              <img
+                src={recipe.image}
+                alt=""
+                className="w-full h-48 object-cover rounded-xl border"
+                loading="lazy"
+              />
+              <div className="flex gap-2">
+                <label className="btn">
+                  Byt bild
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={onImage}
+                    className="hidden"
+                  />
+                </label>
+                <button className="btn text-red-700 border-red-300" onClick={clearImage}>
+                  Rensa bild
+                </button>
+              </div>
+            </div>
+          ) : (
+            <label className="btn bg-butter hover:bg-butter/90 w-fit">
+              Välj bild…
+              <input type="file" accept="image/*" onChange={onImage} className="hidden" />
+            </label>
+          )}
+        </div>
 
         <Themes value={recipe.themes} onChange={(t) => update("themes", t)} />
       </div>
@@ -136,12 +176,7 @@ export default function RecipeForm() {
               type="number"
               placeholder="Mängd"
               value={ing.qty ?? ""}
-              onChange={(e) =>
-                changeIng(i, {
-                  ...ing,
-                  qty: e.target.value ? Number(e.target.value) : null
-                })
-              }
+              onChange={(e) => changeIng(i, { ...ing, qty: e.target.value ? Number(e.target.value) : null })}
             />
             <input
               className="field"
@@ -163,7 +198,7 @@ export default function RecipeForm() {
             />
           </div>
         ))}
-        <button className="btn bg-butter hover:bg-butter/90" onClick={() => addIng()}>
+        <button className="btn bg-butter hover:bg-butter/90" onClick={addIng}>
           + Lägg till ingrediens
         </button>
       </div>
@@ -187,46 +222,45 @@ export default function RecipeForm() {
               min={0}
               placeholder="Timer (s)"
               value={st.timer ?? 0}
-              onChange={(e) => changeStep(i, { ...st, timer: Number(e.target.value) })}
+              onChange={(e) => changeStep(i, { ...st, timer: Number(e.target.value || 0) })}
             />
           </div>
         ))}
-        <button className="btn bg-butter hover:bg-butter/90" onClick={() => addStep()}>
+        <button className="btn bg-butter hover:bg-butter/90" onClick={addStep}>
           + Lägg till steg
         </button>
       </div>
 
       {/* Spara */}
       <div className="flex gap-3">
-        <button className="btn-primary" onClick={save}>
-          Spara
-        </button>
+        <button className="btn-primary" onClick={save}>Spara</button>
       </div>
     </section>
   );
 
   function addIng() {
-    setRecipe((r) => ({
+    setRecipe(r => ({
       ...r,
-      ingredients: [...r.ingredients, { qty: null, unit: "", item: "" } as Ingredient]
+      ingredients: [...r.ingredients, { qty: null, unit: "", item: "" } as Ingredient],
+      updatedAt: Date.now()
     }));
   }
   function changeIng(i: number, ing: Ingredient) {
-    setRecipe((r) => {
+    setRecipe(r => {
       const next = [...r.ingredients];
       next[i] = ing;
       return { ...r, ingredients: next, updatedAt: Date.now() };
     });
   }
   function addStep() {
-    setRecipe((r) => ({
+    setRecipe(r => ({
       ...r,
       steps: [...r.steps, { text: "", timer: 0 }],
       updatedAt: Date.now()
     }));
   }
   function changeStep(i: number, st: any) {
-    setRecipe((r) => {
+    setRecipe(r => {
       const next = [...r.steps];
       next[i] = st;
       return { ...r, steps: next, updatedAt: Date.now() };
@@ -235,14 +269,8 @@ export default function RecipeForm() {
 }
 
 function NumberBox({
-  label,
-  value,
-  onChange
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-}) {
+  label, value, onChange
+}: { label: string; value: number; onChange: (v: number) => void }) {
   return (
     <label className="block">
       <span className="text-sm">{label}</span>
@@ -250,35 +278,36 @@ function NumberBox({
         type="number"
         className="field w-full"
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => onChange(Number(e.target.value || 0))}
       />
     </label>
   );
 }
 
-async function fileToDataUrl(file: File) {
-  const buf = await file.arrayBuffer();
-  const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-  return `data:${file.type};base64,${b64}`;
+// ✅ Robust och minnes-snäll
+function fileToDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Kunde inte läsa bildfilen"));
+    reader.onload = () => resolve(reader.result as string);
+    reader.readAsDataURL(file);
+  });
+}
+
+function dedupe<T>(arr: T[]): T[] {
+  return Array.from(new Set(arr));
 }
 
 /* ---------- Teman ---------- */
 function Themes({
-  value,
-  onChange
-}: {
-  value: string[];
-  onChange: (t: string[]) => void;
-}) {
+  value, onChange
+}: { value: string[]; onChange: (t: string[]) => void }) {
   const [newTheme, setNewTheme] = useState("");
-
-  const all = Array.from(new Set([...defaultThemes, ...value])).sort();
+  const all = dedupe([...defaultThemes, ...value]).sort();
 
   function toggle(t: string) {
-    if (value.includes(t)) onChange(value.filter((x) => x !== t));
-    else onChange([...value, t]);
+    onChange(value.includes(t) ? value.filter(x => x !== t) : [...value, t]);
   }
-
   function addCustom() {
     const t = newTheme.trim();
     if (!t) return;
@@ -290,7 +319,7 @@ function Themes({
     <div className="space-y-2">
       <span className="text-sm">Tema</span>
       <div className="flex flex-wrap gap-2">
-        {all.map((t) => (
+        {all.map(t => (
           <button
             key={t}
             type="button"
