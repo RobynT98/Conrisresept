@@ -28,3 +28,10 @@ export type Recipe = {
   createdAt: number;
   updatedAt: number;
 };
+export interface Note {
+  id: string;
+  text: string;
+  pinned: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
