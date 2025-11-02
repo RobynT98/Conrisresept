@@ -47,3 +47,8 @@ body {
     radial-gradient(120% 80% at 10% -20%, rgba(0,0,0,0.06), transparent 60%) ,
     var(--tw-gradient-stops);
 }
+@layer components {
+  .btn { @apply px-3 py-1.5 rounded-lg border bg-white/70 transition; }
+  .btn-primary { @apply btn border-forest/30 bg-forest text-white hover:bg-forest/90; }
+  .btn-ghost { @apply btn border-transparent text-forest/80 hover:bg-forest/5; }
+}
