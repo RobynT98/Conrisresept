@@ -9,3 +9,41 @@ body {
     linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
   background-size: 24px 24px, 24px 24px;
 }
+@layer components {
+  /* Panel/kort – mjuk papperskänsla */
+  .panel {
+    @apply rounded-2xl border border-neutral-200 bg-white/90 shadow-paper;
+  }
+
+  /* Primärknapp – mörk skogsgrön med mjuk skugga */
+  .btn { @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium transition-colors; }
+  .btn-primary { @apply btn bg-forest text-white shadow-sm hover:bg-forest/90 active:bg-forest/95; }
+  .btn-ghost { @apply btn bg-white border border-neutral-300 hover:bg-neutral-50; }
+
+  /* Sektionstitlar – lite större och varmare */
+  .section-title { @apply font-display text-xl mb-2 text-neutral-900; }
+
+  /* Tomt-läge panel */
+  .empty { @apply panel p-6 border-dashed; }
+
+  /* Inputs lite puffigare */
+  .field { @apply rounded-xl border border-neutral-300 px-3 py-2 bg-white/70 focus:outline-none focus:ring-2 focus:ring-butter; }
+}
+
+/* Rutbakgrund: lite tätare på desktop, lite glesare på mobil */
+body {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.035) 1px, transparent 1px);
+  background-size: 28px 28px, 28px 28px;
+}
+@media (min-width: 640px) {
+  body { background-size: 24px 24px, 24px 24px; }
+}
+
+/* Header “boksida”-känsla */
+.header-paper {
+  background:
+    radial-gradient(120% 80% at 10% -20%, rgba(0,0,0,0.06), transparent 60%) ,
+    var(--tw-gradient-stops);
+}
